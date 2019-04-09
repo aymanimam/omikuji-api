@@ -1,0 +1,9 @@
+coverage.txt
+.envrc
+*.iml
+vendor/
+bin/
+
+.idea/
+
+.DS_Store
