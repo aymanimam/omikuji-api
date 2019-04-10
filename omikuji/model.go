@@ -10,7 +10,7 @@ import (
 
 // Randomizer Interface to get random Omikuji from the predefined set of Omikujis
 type Randomizer interface {
-	GetRandom(min, max int) Omikuji
+	GetRandom(min, max int) (Omikuji, error)
 	GetMax() int
 	GetDaikichiMin() int
 	GetNoDaikichiMin() int
@@ -25,14 +25,14 @@ type Omikuji struct {
 type AllOmikujis []Omikuji
 
 // GetRandom get a random omikuji
-func (omikujis *AllOmikujis) GetRandom(min, max int) Omikuji {
+func (omikujis *AllOmikujis) GetRandom(min, max int) (Omikuji, error) {
 	if min < 0 || max > omikujis.GetMax() || min >= max {
 		msg := fmt.Sprintf("Invalid arguments: min=%d, max=%d", min, max)
-		errors.ThrowOmikujiException(msg, errors.OmikujiErrorCode)
+		return Omikuji{}, errors.NewOmikujiError(msg, errors.OmikujiErrorCode)
 	}
 
 	randIndex := min + rand.Intn(max-min)
-	return (*omikujis)[randIndex]
+	return (*omikujis)[randIndex], nil
 }
 
 // GetMax get the max number of omikujis

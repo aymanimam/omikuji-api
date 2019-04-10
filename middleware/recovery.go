@@ -22,11 +22,11 @@ func (r *Recovery) ServeNext(h http.Handler) http.Handler {
 			if r != nil {
 				switch t := r.(type) {
 				case string:
-					err = errors.NewOmikujiException(t, errors.OmikujiRecoveryErrorCode) // errors.New(t)
+					err = errors.NewOmikujiError(t, errors.OmikujiRecoveryErrorCode)
 				case error:
-					err = errors.NewOmikujiException(t.Error(), errors.OmikujiRecoveryErrorCode) // t
+					err = errors.NewOmikujiError(t.Error(), errors.OmikujiRecoveryErrorCode)
 				default:
-					err = errors.NewOmikujiException("unknown error", errors.OmikujiRecoveryUnknownErrorCode) // errors.New("unknown error")
+					err = errors.NewOmikujiError("unknown error", errors.OmikujiRecoveryUnknownErrorCode)
 				}
 
 				// log the error

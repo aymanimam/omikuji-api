@@ -9,11 +9,11 @@ import (
 // Mock Randomizer
 type MockRandomizer struct{}
 
-func (omikujis *MockRandomizer) GetRandom(min, max int) Omikuji {
+func (omikujis *MockRandomizer) GetRandom(min, max int) (Omikuji, error) {
 	if min == 0 {
-		return Omikuji{"大吉"}
+		return Omikuji{"大吉"}, nil
 	}
-	return Omikuji{"吉"}
+	return Omikuji{"吉"}, nil
 }
 
 func (omikujis *MockRandomizer) GetMax() int {
@@ -38,32 +38,40 @@ func TestGetPeriodChecker(t *testing.T) {
 	fromDate := PeriodicDate{Month: currentMonth, Day: currentDay}
 	toDate := PeriodicDate{Month: currentMonth, Day: currentDay}
 
-	pc := GetPeriodChecker(fromDate, toDate)
+	pc, err := GetPeriodChecker(fromDate, toDate)
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 	if pc == nil {
 		t.Error(`Expected not nil PeriodChecker!`)
 	}
 }
 
 func TestGetPeriodCheckerInvalidMonthOrder(t *testing.T) {
-	AssertPanic(t, "GetPeriodChecker should have panicked!", func() {
-		fromDate := PeriodicDate{Month: time.March, Day: 1}
-		toDate := PeriodicDate{Month: time.January, Day: 1}
-		GetPeriodChecker(fromDate, toDate)
-	})
+	fromDate := PeriodicDate{Month: time.March, Day: 1}
+	toDate := PeriodicDate{Month: time.January, Day: 1}
+	_, err := GetPeriodChecker(fromDate, toDate)
+	if err == nil {
+		t.Error(`Error is expected not to be nil!`)
+	}
 }
 
 func TestGetPeriodCheckerInvalidDayOrder(t *testing.T) {
-	AssertPanic(t, "GetPeriodChecker should have panicked!", func() {
-		fromDate := PeriodicDate{Month: time.March, Day: 5}
-		toDate := PeriodicDate{Month: time.March, Day: 1}
-		GetPeriodChecker(fromDate, toDate)
-	})
+	fromDate := PeriodicDate{Month: time.March, Day: 5}
+	toDate := PeriodicDate{Month: time.March, Day: 1}
+	_, err := GetPeriodChecker(fromDate, toDate)
+	if err == nil {
+		t.Error(`Error is expected not to be nil!`)
+	}
 }
 
 func TestPeriod_WithinThePeriod(t *testing.T) {
 	fromDate := PeriodicDate{Month: time.January, Day: 1}
 	toDate := PeriodicDate{Month: time.March, Day: 1}
-	pc := GetPeriodChecker(fromDate, toDate)
+	pc, err := GetPeriodChecker(fromDate, toDate)
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 
 	layout := "2006-01-02"
 	str := fmt.Sprintf("%d-02-20", time.Now().Year())
@@ -94,18 +102,25 @@ func TestPeriod_WithinThePeriod(t *testing.T) {
 func TestGetOmikujiDispatcher(t *testing.T) {
 	fromDate := PeriodicDate{Month: time.January, Day: 1}
 	toDate := PeriodicDate{Month: time.March, Day: 1}
-	pc := GetPeriodChecker(fromDate, toDate)
+	pc, err := GetPeriodChecker(fromDate, toDate)
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 
-	dispatcher := GetOmikujiDispatcher(pc, &MockRandomizer{})
+	dispatcher, err := GetOmikujiDispatcher(pc, &MockRandomizer{})
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 	if dispatcher == nil {
 		t.Error(`Dispatcher is expected not to be nil!`)
 	}
 }
 
 func TestGetOmikujiDispatcherNilArgs(t *testing.T) {
-	AssertPanic(t, "GetOmikujiDispatcher should have panicked!", func() {
-		GetOmikujiDispatcher(nil, nil)
-	})
+	_, err := GetOmikujiDispatcher(nil, nil)
+	if err == nil {
+		t.Error(`Error is expected not to be nil!`)
+	}
 }
 
 func TestService_GetNextOmikujiWithDaikichi(t *testing.T) {
@@ -115,11 +130,20 @@ func TestService_GetNextOmikujiWithDaikichi(t *testing.T) {
 
 	fromDate := PeriodicDate{Month: currentMonth, Day: currentDay}
 	toDate := PeriodicDate{Month: currentMonth, Day: currentDay}
-	pc := GetPeriodChecker(fromDate, toDate)
+	pc, err := GetPeriodChecker(fromDate, toDate)
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 
-	dispatcher := GetOmikujiDispatcher(pc, &MockRandomizer{})
+	dispatcher, err := GetOmikujiDispatcher(pc, &MockRandomizer{})
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 
-	omikuji := dispatcher.GetNextOmikuji()
+	omikuji, err := dispatcher.GetNextOmikuji(currentTime)
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 	if omikuji.Text != "大吉" {
 		t.Error(`Expected "大吉" omikuji! But was [`, omikuji.Text, `]`)
 	}
@@ -132,11 +156,20 @@ func TestService_GetNextOmikujiWithNoDaikichi(t *testing.T) {
 
 	fromDate := PeriodicDate{Month: futureMonth, Day: futureDay}
 	toDate := PeriodicDate{Month: futureMonth, Day: futureDay}
-	pc := GetPeriodChecker(fromDate, toDate)
+	pc, err := GetPeriodChecker(fromDate, toDate)
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 
-	dispatcher := GetOmikujiDispatcher(pc, &MockRandomizer{})
+	dispatcher, err := GetOmikujiDispatcher(pc, &MockRandomizer{})
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 
-	omikuji := dispatcher.GetNextOmikuji()
+	omikuji, err := dispatcher.GetNextOmikuji(time.Now())
+	if err != nil {
+		t.Error(`Error is expected to be nil!`)
+	}
 	if omikuji.Text != "吉" {
 		t.Error(`Expected "吉" omikuji! But was [`, omikuji.Text, `]`)
 	}

@@ -1,4 +1,4 @@
-package server
+package http
 
 import (
 	"github.com/aymanimam/omikuji-api/errors"
@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 var validResponseRegex = regexp.MustCompile(`^\\{"omikuji":"(大吉|吉|中吉|小吉|半吉|末吉|末小吉|凶|小凶|半凶|末凶|大凶)"\\}$`)
@@ -17,10 +18,10 @@ var validResponseRegex = regexp.MustCompile(`^\\{"omikuji":"(大吉|吉|中吉|�
 // Mock omikuji.Dispatcher
 type MockPanicOmikujiDispatcher struct{}
 
-func (omikujis *MockPanicOmikujiDispatcher) GetNextOmikuji() omikuji.Omikuji {
+func (omikujis *MockPanicOmikujiDispatcher) GetNextOmikuji(time time.Time) (omikuji.Omikuji, error) {
 	msg := "MockPanicOmikujiDispatcher Error!"
-	errors.ThrowOmikujiException(msg, errors.OmikujiServiceErrorCode)
-	return omikuji.Omikuji{}
+	panic(errors.NewOmikujiError(msg, errors.OmikujiServiceErrorCode))
+	return omikuji.Omikuji{}, nil
 }
 
 // ---------------

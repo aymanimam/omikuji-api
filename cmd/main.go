@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/aymanimam/omikuji-api/server"
+	"github.com/aymanimam/omikuji-api/http"
 )
 
 // Start omikuji server
 func main() {
-	server.StartServer()
+	http.StartServer()
 }

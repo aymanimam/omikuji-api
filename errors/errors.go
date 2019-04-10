@@ -15,27 +15,21 @@ const (
 	OmikujiRecoveryUnknownErrorCode = "104"
 )
 
-// OmikujiException it's thrown when an error happens in Omikuji, OmikujiService and OmikujiServer
-type OmikujiException struct {
+// OmikujiEerror it's thrown when an error happens in Omikuji, OmikujiService and OmikujiServer
+type OmikujiEerror struct {
 	Message string `json:"message"`
 	Code    string `json:"code"`
 }
 
-// OmikujiException implements Error interface
-func (e *OmikujiException) Error() string {
-	return fmt.Sprintf("[OmikujiException] message: [%v], code: [%v].", e.Message, e.Code)
+// OmikujiEerror implements Error interface
+func (e *OmikujiEerror) Error() string {
+	return fmt.Sprintf("[OmikujiError] message: [%v], code: [%v].", e.Message, e.Code)
 }
 
-// NewOmikujiException Create new OmikujiException
-func NewOmikujiException(msg, code string) *OmikujiException {
-	return &OmikujiException{
+// NewOmikujiError Create new OmikujiError
+func NewOmikujiError(msg, code string) error {
+	return &OmikujiEerror{
 		msg,
 		code,
 	}
-}
-
-// ThrowOmikujiException Throw an OmikujiException
-func ThrowOmikujiException(msg, code string) {
-	e := NewOmikujiException(msg, code)
-	panic(e)
 }

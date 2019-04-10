@@ -13,7 +13,7 @@ type PeriodChecker interface {
 
 // Dispatcher interface to get the next random omikuji
 type Dispatcher interface {
-	GetNextOmikuji() Omikuji
+	GetNextOmikuji(t time.Time) (Omikuji, error)
 }
 
 // PeriodicDate a periodically repeated day every year
@@ -50,44 +50,43 @@ type service struct {
 }
 
 // GetNextOmikuji get the next random omikuji
-func (s *service) GetNextOmikuji() Omikuji {
+func (s *service) GetNextOmikuji(t time.Time) (Omikuji, error) {
 	if s.Randomizer == nil || s.PeriodChecker == nil {
 		msg := fmt.Sprintf("One or more invalid arguments! [Randomizer: %v][PeriodChecker: %v]",
 			s.Randomizer, s.PeriodChecker)
-		errors.ThrowOmikujiException(msg, errors.OmikujiServiceErrorCode)
+		return Omikuji{}, errors.NewOmikujiError(msg, errors.OmikujiServiceErrorCode)
 	}
 
 	r := s.Randomizer
-	currentTime := time.Now()
 
-	if s.PeriodChecker.WithinThePeriod(currentTime) {
+	if s.PeriodChecker.WithinThePeriod(t) {
 		return r.GetRandom(r.GetDaikichiMin(), r.GetMax())
 	}
 	return r.GetRandom(r.GetNoDaikichiMin(), r.GetMax())
 }
 
 // GetPeriodChecker Get PeriodChecker
-func GetPeriodChecker(fromDate, toDate PeriodicDate) PeriodChecker {
+func GetPeriodChecker(fromDate, toDate PeriodicDate) (PeriodChecker, error) {
 	if fromDate.Month > toDate.Month {
 		msg := fmt.Sprintf("Period checker inputs are invalid [fromDate: %v][toDate: %v]", fromDate, toDate)
-		errors.ThrowOmikujiException(msg, errors.OmikujiServiceErrorCode)
+		return nil, errors.NewOmikujiError(msg, errors.OmikujiServiceErrorCode)
 	} else if fromDate.Month == toDate.Month {
 		if fromDate.Day > toDate.Day {
 			msg := fmt.Sprintf("Period checker inputs are invalid [fromDate: %v][toDate: %v]", fromDate, toDate)
-			errors.ThrowOmikujiException(msg, errors.OmikujiServiceErrorCode)
+			return nil, errors.NewOmikujiError(msg, errors.OmikujiServiceErrorCode)
 		}
 	}
-	return &period{From: fromDate, To: toDate}
+	return &period{From: fromDate, To: toDate}, nil
 }
 
 // GetOmikujiDispatcher Get Dispatcher
-func GetOmikujiDispatcher(pc PeriodChecker, r Randomizer) Dispatcher {
+func GetOmikujiDispatcher(pc PeriodChecker, r Randomizer) (Dispatcher, error) {
 	if pc == nil || r == nil {
 		msg := fmt.Sprintf("Invalid arguments! [PeriodChecker: %v][Randomizer: %v]", pc, r)
-		errors.ThrowOmikujiException(msg, errors.OmikujiServiceErrorCode)
+		return nil, errors.NewOmikujiError(msg, errors.OmikujiServiceErrorCode)
 	}
 	return &service{
 		pc,
 		r,
-	}
+	}, nil
 }
